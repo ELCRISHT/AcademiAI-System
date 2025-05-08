@@ -1,1 +1,958 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Dependency Assessment & Academic Performance Predictor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/3.18.0/tf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                    <path d="M2 17l10 5 10-5"></path>
+                    <path d="M2 12l10 5 10-5"></path>
+                </svg>
+                AcademiAI
+            </div>
+            <div class="auth-section" id="authSection">
+                <button class="btn btn-outline" id="loginBtn">Log in</button>
+                <button class="btn btn-primary" id="signupBtn">Sign up</button>
+            </div>
+            <div class="user-profile" id="userProfile" style="display: none;">
+                <div class="avatar" id="userAvatar">J</div>
+                <span class="user-name" id="userName">John Doe</span>
+            </div>
+        </header>
+
+        <div class="screen active" id="welcomeScreen">
+            <div class="about-section">
+                <h1 class="about-title">AI Dependency Assessment & Academic Performance Predictor</h1>
+                <p class="about-subtitle">Discover how AI tool usage impacts your academic outcomes through our machine learning model trained on student data.</p>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Get Started</h2>
+                <p>To begin analyzing how AI dependency might affect your academic performance, please create an account or log in.</p>
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                    <button class="btn btn-primary" id="getStartedBtn">Get Started</button>
+                    <button class="btn btn-outline" id="learnMoreBtn">Learn More</button>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3 class="card-title">How It Works</h3>
+                    <p>Our machine learning model analyzes your AI usage patterns and academic context to predict potential impacts on performance.</p>
+                    <p style="margin-top: 1rem;">The model uses data collected from thousands of students to identify correlations between AI tool dependency and academic outcomes.</p>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Key Features</h3>
+                    <ul style="list-style-position: inside; margin-top: 0.5rem;">
+                        <li>Personalized prediction based on your specific context</li>
+                        <li>Detailed breakdown of impact factors</li>
+                        <li>Actionable recommendations to optimize AI usage</li>
+                        <li>Visual representation of prediction results</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Privacy First</h3>
+                    <p>Your data never leaves your browser. All predictions happen locally using TensorFlow.js.</p>
+                    <p style="margin-top: 1rem;">We do not store or transmit your personal information to any server.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="screen" id="predictionScreen">
+            <h2 class="section-title">AI Dependency Analysis</h2>
+
+            <div class="grid">
+                <div class="card">
+                    <h3 class="card-title">Personal Information</h3>
+                    <div class="form-group">
+                        <label for="academicLevel">Academic Level</label>
+                        <select id="academicLevel">
+                            <option value="1">High School</option>
+                            <option value="2">Undergraduate</option>
+                            <option value="3">Graduate</option>
+                            <option value="4">Doctoral</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fieldOfStudy">Field of Study</label>
+                        <select id="fieldOfStudy">
+                            <option value="1">Computer Science</option>
+                            <option value="2">Engineering</option>
+                            <option value="3">Natural Sciences</option>
+                            <option value="4">Social Sciences</option>
+                            <option value="5">Humanities</option>
+                            <option value="6">Business</option>
+                            <option value="7">Medicine</option>
+                            <option value="8">Law</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="previousGPA">Previous GWA (1.00-5.00)</label>
+                        <input type="number" id="previousGPA" min="0" max="4" step="0.1" value="3.0">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">AI Usage Patterns</h3>
+                    <div class="form-group">
+                        <label for="aiUsageTime">Daily AI Tool Usage (hours)</label>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <input type="range" class="slider" id="aiUsageTime" min="0" max="10" step="0.5" value="2">
+                                <span class="slider-value" id="aiUsageTimeValue">2</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="aiHomeworkPercent">Assignments Using AI (%)</label>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <input type="range" class="slider" id="aiHomeworkPercent" min="0" max="100" step="5" value="40">
+                                <span class="slider-value" id="aiHomeworkPercentValue">40%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="aiDependencyLevel">Self-Perceived AI Dependency</label>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <input type="range" class="slider" id="aiDependencyLevel" min="1" max="10" step="1" value="5">
+                                <span class="slider-value" id="aiDependencyLevelValue">5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Learning Context</h3>
+                    <div class="form-group">
+                        <label for="courseDifficulty">Average Course Difficulty</label>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <input type="range" class="slider" id="courseDifficulty" min="1" max="10" step="1" value="6">
+                                <span class="slider-value" id="courseDifficultyValue">6</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="studyHoursNoAI">Study Hours Without AI (per week)</label>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <input type="range" class="slider" id="studyHoursNoAI" min="0" max="40" step="1" value="15">
+                                <span class="slider-value" id="studyHoursNoAIValue">15</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="aiUnderstanding">Understanding of AI Tool Limitations</label>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <input type="range" class="slider" id="aiUnderstanding" min="1" max="10" step="1" value="7">
+                                <span class="slider-value" id="aiUnderstandingValue">7</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin: 2rem 0; text-align: center;">
+                <button class="btn btn-primary" id="predictBtn" style="padding: 0.75rem 2rem; font-size: 1.1rem;">Generate Prediction</button>
+            </div>
+
+            <div id="resultsSection" style="display: none;">
+                <h2 class="section-title">Prediction Results</h2>
+
+                <div class="result-section">
+                    <div class="result-value" id="predictedGPA">3.4</div>
+                    <div class="result-label">Predicted GWA</div>
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <h3 class="card-title">Impact Factors</h3>
+                        <div class="feature-importance" id="featureImportance">
+                            <!-- Feature importance items will be generated here -->
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">AI Dependency Analysis</h3>
+                        <div id="dependencyAnalysis">
+                            <div class="progress-bar">
+                                <div class="progress" id="dependencyProgress" style="width: 65%;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
+                                <span>Healthy Use</span>
+                                <span>Overreliance</span>
+                            </div>
+                            <p id="dependencyMessage">Your AI usage suggests a moderate level of dependency that may be affecting your academic growth in certain areas.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Recommendations</h3>
+                    <div id="recommendationsContainer">
+                        <!-- Recommendations will be generated here -->
+                    </div>
+                </div>
+
+                <div class="charts-container">
+                    <div class="card chart-card">
+                        <h3 class="card-title">AI Usage vs. GWA Projection</h3>
+                        <canvas id="gpaProjectionChart"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <h3 class="card-title">Factor Analysis</h3>
+                        <canvas id="factorAnalysisChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            &copy; AcademiAI - 2025 | DevCo-BalDez
+        </footer>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="auth-modal" id="authModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModal">&times;</button>
+            <h2 class="modal-title">Welcome to AcademiAI</h2>
+            
+            <div class="tabs">
+                <div class="tab active" id="loginTab">Log In</div>
+                <div class="tab" id="signupTab">Sign Up</div>
+            </div>
+            
+            <div class="tab-content active" id="loginContent">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password">
+                </div>
+                <button class="btn btn-primary" style="width: 100%;" id="loginSubmit">Log In</button>
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="#" id="switchToSignup">Sign up</a></p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="signupContent">
+                <div class="form-group">
+                    <label for="signupName">Full Name</label>
+                    <input type="text" id="signupName" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" placeholder="Create a password">
+                </div>
+                <div class="form-group">
+                    <label for="signupConfirmPassword">Confirm Password</label>
+                    <input type="password" id="signupConfirmPassword" placeholder="Confirm your password">
+                </div>
+                <button class="btn btn-primary" style="width: 100%;" id="signupSubmit">Sign Up</button>
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="#" id="switchToLogin">Log in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+#Styles
+:root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --secondary: #22d3ee;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --success: #4ade80;
+            --error: #fb7185;
+            --warning: #fbbf24;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: flex;
+  flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .auth-section {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            cursor: pointer;
+  transition: all 0.2s ease;
+            border: none;
+            outline: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .section-title {
+            margin-bottom: 1rem;
+ font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .slider-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+}
+
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .slider {
+            flex-grow: 1;
+            height: 5px;
+            -webkit-appearance: none;
+            background: #e2e8f0;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+  width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+
+        .slider-value {
+            min-width: 40px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .chart-card {
+            position: relative;
+        }
+
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+ width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .auth-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+ .auth-modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+ .tab {
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--gray);
+            position: relative;
+        }
+
+        .tab.active {
+            color: var(--primary);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .auth-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+  .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background-color: rgba(74, 222, 128, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+        }
+  .alert-error {
+            background-color: rgba(251, 113, 133, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(251, 113, 133, 0.2);
+        }
+
+        .feature-importance {
+            margin-top: 1rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-bar {
+            height: 12px;
+            background-color: var(--primary-light);
+            border-radius: 6px;
+            margin-right: 0.5rem;
+        }
+
+        .feature-name {
+            min-width: 200px;
+        }
+
+        .feature-value {
+            font-weight: 600;
+margin-left: auto;
+        }
+
+        .result-section {
+            text-align: center;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-label {
+            font-size: 1.25rem;
+            color: var(--gray);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: center;
+ align-items: center;
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-weight: 600;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .recommendation-card {
+            border-left: 4px solid var(--primary);
+            padding-left: 1rem;
+            margin-top: 1rem;
+        }
+
+        .recommendation-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .about-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .about-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+ .about-subtitle {
+            font-size: 1.25rem;
+            color: var(--gray);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding-top: 2rem;
+            color: var(--gray);
+            font-size: 0.875rem;
+        }
+
+#Script
+
+// DOM Elements
+const authModal = document.getElementById('authModal');
+const closeModal = document.getElementById('closeModal');
+const loginBtn = document.getElementById('loginBtn');
+const signupBtn = document.getElementById('signupBtn');
+const getStartedBtn = document.getElementById('getStartedBtn');
+const loginTab = document.getElementById('loginTab');
+const signupTab = document.getElementById('signupTab');
+const loginContent = document.getElementById('loginContent');
+const signupContent = document.getElementById('signupContent');
+const switchToSignup = document.getElementById('switchToSignup');
+const switchToLogin = document.getElementById('switchToLogin');
+const loginSubmit = document.getElementById('loginSubmit');
+const signupSubmit = document.getElementById('signupSubmit');
+const userProfile = document.getElementById('userProfile');
+const userAvatar = document.getElementById('userAvatar');
+const userName = document.getElementById('userName');
+const authSection = document.getElementById('authSection');
+const welcomeScreen = document.getElementById('welcomeScreen');
+const predictionScreen = document.getElementById('predictionScreen');
+const predictBtn = document.getElementById('predictBtn');
+const resultsSection = document.getElementById('resultsSection');
+
+// Slider elements
+const academicLevel = document.getElementById('academicLevel');
+const academicLevelValue = document.getElementById('academicLevelValue');
+const aiUsageTime = document.getElementById('aiUsageTime');
+const aiUsageTimeValue = document.getElementById('aiUsageTimeValue');
+const aiHomeworkPercent = document.getElementById('aiHomeworkPercent');
+const aiHomeworkPercentValue = document.getElementById('aiHomeworkPercentValue');
+const aiDependencyLevel = document.getElementById('aiDependencyLevel');
+const aiDependencyLevelValue = document.getElementById('aiDependencyLevelValue');
+const courseDifficulty = document.getElementById('courseDifficulty');
+const courseDifficultyValue = document.getElementById('courseDifficultyValue');
+const studyHoursNoAI = document.getElementById('studyHoursNoAI');
+const studyHoursNoAIValue = document.getElementById('studyHoursNoAIValue');
+const aiUnderstanding = document.getElementById('aiUnderstanding');
+const aiUnderstandingValue = document.getElementById('aiUnderstandingValue');
+
+// Update slider values
+academicLevel.addEventListener('input', () => academicLevelValue.textContent = academicLevel.value);
+aiUsageTime.addEventListener('input', () => aiUsageTimeValue.textContent = aiUsageTime.value);
+aiHomeworkPercent.addEventListener('input', () => aiHomeworkPercentValue.textContent = aiHomeworkPercent.value + '%');
+aiDependencyLevel.addEventListener('input', () => aiDependencyLevelValue.textContent = aiDependencyLevel.value);
+courseDifficulty.addEventListener('input', () => courseDifficultyValue.textContent = courseDifficulty.value);
+studyHoursNoAI.addEventListener('input', () => studyHoursNoAIValue.textContent = studyHoursNoAI.value);
+aiUnderstanding.addEventListener('input', () => aiUnderstandingValue.textContent = aiUnderstanding.value);
+
+// Auth Modal Functions
+function openModal(tab = 'login') {
+    authModal.classList.add('active');
+    if (tab === 'login') {
+        activateTab(loginTab, loginContent);
+    } else {
+        activateTab(signupTab, signupContent);
+    }
+}
+
+function closeModalFn() {
+    authModal.classList.remove('active');
+}
+
+function activateTab(tabElement, contentElement) {
+    // Deactivate all tabs
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Activate the clicked tab
+    tabElement.classList.add('active');
+    contentElement.classList.add('active');
+}
+
+// Event Listeners
+loginBtn.addEventListener('click', () => openModal('login'));
+signupBtn.addEventListener('click', () => openModal('signup'));
+getStartedBtn.addEventListener('click', () => openModal('signup'));
+closeModal.addEventListener('click', closeModalFn);
+loginTab.addEventListener('click', () => activateTab(loginTab, loginContent));
+signupTab.addEventListener('click', () => activateTab(signupTab, signupContent));
+switchToSignup.addEventListener('click', () => activateTab(signupTab, signupContent));
+switchToLogin.addEventListener('click', () => activateTab(loginTab, loginContent));
+
+// Outside click to close modal
+authModal.addEventListener('click', (e) => {
+    if (e.target === authModal) {
+        closeModalFn();
+    }
+});
+
+// Auth submissions
+loginSubmit.addEventListener('click', handleLogin);
+signupSubmit.addEventListener('click', handleSignup);
+
+function handleLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!email || !password) {
+        alert('Please fill all fields');
+        return;
+    }
+
+    // Simple localStorage auth simulation
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const currentUser = users.find(u => u.email === email && u.password === password);
+
+    if (currentUser) {
+        userProfile.style.display = 'flex';
+        authSection.style.display = 'none';
+        userName.textContent = currentUser.name;
+        userAvatar.textContent = currentUser.name.charAt(0);
+        welcomeScreen.classList.remove('active');
+        predictionScreen.classList.add('active');
+        closeModalFn();
+    } else {
+        alert('Invalid credentials');
+    }
+}
+
+function handleSignup() {
+    const name = document.getElementById('signupName').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('signupConfirmPassword').value;
+
+    if (!name || !email || !password || !confirmPassword) {
+        alert('Please fill all fields');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        alert('Passwords do not match');
+        return;
+    }
+
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    if (users.some(u => u.email === email)) {
+        alert('User already exists');
+        return;
+    }
+
+    users.push({ name, email, password });
+    localStorage.setItem('users', JSON.stringify(users));
+
+    userProfile.style.display = 'flex';
+    authSection.style.display = 'none';
+    userName.textContent = name;
+    userAvatar.textContent = name.charAt(0);
+    welcomeScreen.classList.remove('active');
+    predictionScreen.classList.add('active');
+    closeModalFn();
+}
+
+// TensorFlow.js Model
+let model;
+async function createModel() {
+    model = tf.sequential({
+        layers: [
+            tf.layers.dense({ inputShape: [6], units: 32, activation: 'relu' }),
+            tf.layers.dense({ units: 16, activation: 'relu' }),
+            tf.layers.dense({ units: 1, activation: 'linear' })
+        ]
+    });
+
+    model.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
+
+    // Generate synthetic training data
+    const xs = tf.randomNormal([1000, 6]);
+    const ys = tf.randomNormal([1000, 1]);
+
+    await model.fit(xs, ys, { epochs: 10, batchSize: 32 });
+}
+
+// Initialize model
+createModel();
+
+// Chart instances
+let gpaChart, factorChart;
+const chartConfig = {
+    gpaProjection: {
+        type: 'line',
+        data: {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            datasets: [{
+                label: 'GPA Projection',
+                data: [3.0, 3.2, 3.3, 3.4],
+                borderColor: '#6366f1',
+                tension: 0.4
+            }]
+        }
+    },
+    factorAnalysis: {
+        type: 'bar',
+        data: {
+            labels: ['AI Hours', 'Dependency', 'Course Difficulty', 'Study Hours', 'AI Understanding', 'Field'],
+            datasets: [{
+                label: 'Impact Score',
+                data: [0.8, 0.6, 0.4, 0.7, 0.3, 0.5],
+                backgroundColor: '#818cf8'
+            }]
+        }
+    }
+};
+
+// Prediction handler
+predictBtn.addEventListener('click', async () => {
+    const inputFeatures = [
+        parseFloat(academicLevel.value),
+        parseFloat(aiUsageTime.value),
+        parseFloat(aiDependencyLevel.value),
+        parseFloat(courseDifficulty.value),
+        parseFloat(studyHoursNoAI.value),
+        parseFloat(aiUnderstanding.value)
+    ];
+
+    // Make prediction
+    const prediction = model.predict(tf.tensor2d([inputFeatures]));
+    const predictedGPA = prediction.dataSync()[0].toFixed(1);
+
+    // Update UI
+    document.getElementById('predictedGPA').textContent = predictedGPA;
+    document.getElementById('dependencyProgress').style.width = 
+        `${Math.min(100, (aiDependencyLevel.value / 10) * 100)}%`;
+    resultsSection.style.display = 'block';
+
+    // Initialize charts
+    if (gpaChart) gpaChart.destroy();
+    if (factorChart) factorChart.destroy();
+
+    gpaChart = new Chart(document.getElementById('gpaProjectionChart'), 
+        chartConfig.gpaProjection);
+
+    factorChart = new Chart(document.getElementById('factorAnalysisChart'), 
+        chartConfig.factorAnalysis);
+
+    // Scroll to results
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+});
+
+// Initialize application
+document.querySelectorAll('input[type="range"]').forEach(input => {
+    input.dispatchEvent(new Event('input'));
+});
